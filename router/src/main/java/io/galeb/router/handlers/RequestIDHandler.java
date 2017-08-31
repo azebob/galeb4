@@ -31,7 +31,7 @@ public class RequestIDHandler implements HttpHandler {
     private HttpHandler next = null;
 
     private static HttpString getRequestId() {
-        return HttpString.tryFromString(System.getProperty("REQUEST_ID", SystemEnv.REQUESTID_HEADER.getValue()));
+        return HttpString.tryFromString(System.getProperty("REQUESTID_HEADER", SystemEnv.REQUESTID_HEADER.getValue()));
     }
 
     @Override

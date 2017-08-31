@@ -16,13 +16,13 @@
 
 package io.galeb.router.handlers.completionListeners;
 
+import io.galeb.core.enums.SystemEnv;
 import io.galeb.router.client.hostselectors.HostSelector;
 import io.undertow.attribute.ExchangeAttribute;
 import io.undertow.attribute.ExchangeAttributes;
 import io.undertow.attribute.SubstituteEmptyWrapper;
 import io.undertow.server.ExchangeCompletionListener;
 import io.undertow.server.HttpServerExchange;
-import io.undertow.util.HeaderMap;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -31,16 +31,18 @@ import org.springframework.stereotype.Component;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static io.galeb.router.ResponseCodeOnError.Header.X_GALEB_ERROR;
-
 @Component
 public class AccessLogCompletionListener extends ProcessorLocalStatusCode implements ExchangeCompletionListener {
 
     private static final int MAX_REQUEST_TIME = Integer.MAX_VALUE - 1;
     private static final String REAL_DEST = "#REAL_DEST#";
+    private static final String REQUESTID = "#REQUESTID#";
+    private static final String REQUESTID_HEADER = SystemEnv.REQUESTID_HEADER.getValue();
     private static final String LOGPATTERN = "%a\t%v\t%r\t-\t-\tLocal:\t%s\t*-\t%B\t%D\tProxy:\t" +
                                              REAL_DEST +
-                                             "\t%s\t-\t%b\t-\t-\tAgent:\t%{i,User-Agent}\tFwd:\t%{i,X-Forwarded-For}";
+                                             "\t%s\t-\t%b\t-\t-\tAgent:\t%{i,User-Agent}" +
+                                            ((!"".equals(REQUESTID_HEADER)) ? "\t" + REQUESTID : "") +
+                                            "\tFwd:\t%{i,X-Forwarded-For}";
 
     private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -65,7 +67,14 @@ public class AccessLogCompletionListener extends ProcessorLocalStatusCode implem
             if (match.find()) {
                 message = match.group(1) + match.group(2).replace(" ", "\t") + match.group(3);
             }
-            logger.info(message.replaceAll(REAL_DEST, realDest));
+            message = message.replaceAll(REAL_DEST, realDest);
+            if (!"".equals(REQUESTID_HEADER)) {
+                String requestId = exchange.getRequestHeaders().get(REQUESTID_HEADER).getFirst();
+                if (requestId != null && !"".equals(requestId)) {
+                    message = message.replaceAll(REQUESTID, requestId);
+                }
+            }
+            logger.info(message);
         } catch (Exception e) {
             logger.error(ExceptionUtils.getStackTrace(e));
         } finally {
