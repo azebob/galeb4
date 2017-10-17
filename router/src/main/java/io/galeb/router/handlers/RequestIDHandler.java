@@ -36,7 +36,7 @@ public class RequestIDHandler implements HttpHandler {
 
     @Override
     public void handleRequest(HttpServerExchange exchange) throws Exception {
-        if (!"".equals(requestIdHeader.toString()) && !exchange.getRequestHeaders().contains(requestIdHeader)) {
+        if (requestIdHeader != null && !exchange.getRequestHeaders().contains(requestIdHeader)) {
             exchange.getRequestHeaders().add(requestIdHeader, UUID.randomUUID().toString());
         }
         if (next != null) {

@@ -20,19 +20,34 @@ import io.galeb.router.handlers.RequestIDHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.ServerConnection;
 import io.undertow.util.HttpString;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hamcrest.Matchers;
+import org.junit.Test;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.hamcrest.Matchers.equalTo;
+import static org.mockito.Mockito.when;
+
+import io.galeb.router.handlers.RequestIDHandler;
+import io.undertow.server.HttpServerExchange;
+import io.undertow.server.ServerConnection;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.mock;
-
 public class RequestIDHandlerTest {
 
-    @Test
-    public void checkHeaderDefined() {
+    static {
         System.setProperty("REQUESTID_HEADER", "X-RID");
+    }
 
+    private final Log logger = LogFactory.getLog(this.getClass());
+    @Test
+    public void checkHeader() {
         RequestIDHandler requestIDHandler = new RequestIDHandler();
         ServerConnection serverConnection = mock(ServerConnection.class);
         try {
@@ -40,57 +55,12 @@ public class RequestIDHandlerTest {
             requestIDHandler.handleRequest(exchange);
             assertThat(exchange.getRequestHeaders().get("X-RID"), Matchers.notNullValue());
 
-            assertWithHeaderPreExisting(requestIDHandler, serverConnection);
-        } catch (Exception e) {
-            throw new AssertionError(e);
-        }
-    }
-
-    @Test
-    public void checkHeaderUndefined() {
-        System.setProperty("REQUESTID_HEADER", "");
-
-        RequestIDHandler requestIDHandler = new RequestIDHandler();
-        ServerConnection serverConnection = mock(ServerConnection.class);
-        try {
-            HttpServerExchange exchange = new HttpServerExchange(serverConnection);
-            requestIDHandler.handleRequest(exchange);
-            assertThat(exchange.getRequestHeaders().get("X-RID"), Matchers.nullValue());
-
-            assertWithHeaderPreExisting(requestIDHandler, serverConnection);
-        } catch (Exception e) {
-            throw new AssertionError(e);
-        }
-    }
-
-    @Test
-    public void checkHeaderIgnoreCase() {
-        System.setProperty("REQUESTID_HEADER", "X-RID");
-
-        RequestIDHandler requestIDHandler = new RequestIDHandler();
-        ServerConnection serverConnection = mock(ServerConnection.class);
-        try {
-            HttpServerExchange exchange = new HttpServerExchange(serverConnection);
-            requestIDHandler.handleRequest(exchange);
-            assertThat(exchange.getRequestHeaders().get("x-rid"), Matchers.notNullValue());
-        } catch (Exception e) {
-            throw new AssertionError(e);
-        }
-    }
-
-    private void assertWithHeaderPreExisting(RequestIDHandler requestIDHandler, ServerConnection serverConnection) throws AssertionError {
-        HttpServerExchange exchangeWithHeader = newExchangeWithHeader(serverConnection);
-        try {
+            HttpServerExchange exchangeWithHeader = new HttpServerExchange(serverConnection);
+            exchangeWithHeader.getRequestHeaders().add(new HttpString("X-RID"), "ABC");
             requestIDHandler.handleRequest(exchangeWithHeader);
             assertThat(exchangeWithHeader.getRequestHeaders().get("X-RID").getFirst(), equalTo("ABC"));
         } catch (Exception e) {
-            throw new AssertionError(e);
+            logger.error(ExceptionUtils.getStackTrace(e));
         }
-    }
-
-    private HttpServerExchange newExchangeWithHeader(ServerConnection serverConnection) {
-        HttpServerExchange exchangeWithHeader = new HttpServerExchange(serverConnection);
-        exchangeWithHeader.getRequestHeaders().add(new HttpString("X-RID"), "ABC");
-        return exchangeWithHeader;
     }
 }
