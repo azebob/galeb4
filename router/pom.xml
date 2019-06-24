@@ -42,7 +42,7 @@
         <disruptor.version>3.3.6</disruptor.version>
         <metrics.version>3.2.2</metrics.version>
         <jodd.version>3.8.1</jodd.version>
-        <guava.version>24.1.1-jre</guava.version>
+        <guava.version>26.0-jre</guava.version>
         <asynchttpclient.version>2.1.0</asynchttpclient.version>
         <metrics.version>3.2.2</metrics.version>
 
