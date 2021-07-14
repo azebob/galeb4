@@ -43,7 +43,7 @@
         <metrics.version>3.2.2</metrics.version>
         <jodd.version>3.8.1</jodd.version>
         <guava.version>24.1.1-jre</guava.version>
-        <asynchttpclient.version>2.1.0</asynchttpclient.version>
+        <asynchttpclient.version>2.12.3</asynchttpclient.version>
         <metrics.version>3.2.2</metrics.version>
 
         <info-cukes.version>1.2.4</info-cukes.version>
